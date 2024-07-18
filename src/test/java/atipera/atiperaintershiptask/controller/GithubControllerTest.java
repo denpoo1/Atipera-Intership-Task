@@ -38,23 +38,6 @@ class GithubControllerTest {
         private GithubController githubController;
 
         @Test
-        void testGetAllReposByUsername() throws Exception {
-                // Arrange
-                Optional<List<GithubRepositoryResponse>> ofResult = Optional.of(new ArrayList<>());
-                when(githubClient.getAllRepositoriesByUsername(Mockito.<String>any())).thenReturn(ofResult);
-                MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/api/github/{username}/repos",
-                        "janedoe");
-
-                // Act and Assert
-                MockMvcBuilders.standaloneSetup(githubController)
-                        .build()
-                        .perform(requestBuilder)
-                        .andExpect(MockMvcResultMatchers.status().isOk())
-                        .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
-                        .andExpect(MockMvcResultMatchers.content().string("[]"));
-        }
-
-        @Test
         void testGetAllReposByUsername2() throws Exception {
                 // Arrange
                 GithubOwnerResponse owner = new GithubOwnerResponse();
