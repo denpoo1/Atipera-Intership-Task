@@ -94,6 +94,7 @@ jobs:
 #          -Djib.to.auth.username=${{ secrets.DOCKER_USERNAME }} \
 #          -Djib.to.auth.password=${{ secrets.DOCKER_PASSWORD }}
 
+
   deploy_to_azure_web_app_service:
     runs-on: ubuntu-latest
     steps:
