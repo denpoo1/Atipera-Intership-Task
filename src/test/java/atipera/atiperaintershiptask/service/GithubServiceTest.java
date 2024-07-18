@@ -45,12 +45,9 @@ class GithubServiceTest {
                 Optional<List<GithubRepositoryResponse>> ofResult = Optional.of(new ArrayList<>());
                 when(githubClient.getAllRepositoriesByUsername(Mockito.<String>any())).thenReturn(ofResult);
 
-                // Act
-                List<GithubModel> actualAllReposByUsername = githubService.getAllReposByUsername("janedoe");
-
-                // Assert
+                // Act and Assert
+                assertThrows(NotFoundException.class, () -> githubService.getAllReposByUsername("janedoe"));
                 verify(githubClient).getAllRepositoriesByUsername(eq("janedoe"));
-                assertTrue(actualAllReposByUsername.isEmpty());
         }
 
         @Test
@@ -158,17 +155,6 @@ class GithubServiceTest {
                 assertThrows(NotFoundException.class, () -> githubService.getAllReposByUsername("janedoe"));
                 verify(githubClient).getAllBranchesByUsernameAndProjectName(eq("janedoe"),
                         eq("atipera.atiperaintershiptask.dto.response.feign_client.GithubRepositoryResponse"));
-                verify(githubClient).getAllRepositoriesByUsername(eq("janedoe"));
-        }
-
-        @Test
-        void testGetAllReposByUsername5() throws JsonProcessingException {
-                // Arrange
-                Optional<List<GithubRepositoryResponse>> emptyResult = Optional.empty();
-                when(githubClient.getAllRepositoriesByUsername(Mockito.<String>any())).thenReturn(emptyResult);
-
-                // Act and Assert
-                assertThrows(NotFoundException.class, () -> githubService.getAllReposByUsername("janedoe"));
                 verify(githubClient).getAllRepositoriesByUsername(eq("janedoe"));
         }
 }

@@ -37,8 +37,11 @@ public class GithubService {
                                 "API rate limit exceeded. Blocking until " + GithubFallbackFactory.getUnblockedAt());
                 }
 
-                List<GithubRepositoryResponse> repositoryModels = githubClient.getAllRepositoriesByUsername(username)
-                        .orElseThrow(() -> new NotFoundException("Not found user with username " + username));
+                List<GithubRepositoryResponse> repositoryModels = githubClient.getAllRepositoriesByUsername(username).get();
+
+                if (repositoryModels.isEmpty()) {
+                        throw new NotFoundException("Not found user with username " + username);
+                }
 
                 return repositoryModels.stream()
                         .filter(repo -> !repo.isFork())

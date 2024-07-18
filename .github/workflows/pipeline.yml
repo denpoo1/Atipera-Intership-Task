@@ -9,7 +9,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -26,7 +25,6 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     needs: [ build ]
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -41,7 +39,7 @@ jobs:
         run: mvn test
 
   sonarqube-analyze:
-    name: sonarqube analyze
+    name: SonarQube Analyze
     runs-on: ubuntu-latest
     needs: [ tests ]
     steps:
@@ -70,3 +68,24 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=denpoo1_Atipera-Intership-Task
+
+  sonarqube-quality-gate:
+    name: SonarQube Quality Gate
+    runs-on: ubuntu-latest
+    needs: [ sonarqube-analyze ]
+    steps:
+      - name: Check SonarQube Quality Gate Status
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          PROJECT_KEY="denpoo1_Atipera-Intership-Task"
+          RESPONSE=$(curl -s -u $SONAR_TOKEN: "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY")
+          STATUS=$(echo $RESPONSE | jq -r '.projectStatus.status')
+          
+          if [ "$STATUS" != "OK" ]; then
+            echo "Quality Gate failed: $STATUS"
+            exit 1
+          else
+            echo "Quality Gate passed."
+          fi
