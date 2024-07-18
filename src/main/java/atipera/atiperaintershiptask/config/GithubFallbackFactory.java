@@ -10,10 +10,9 @@ package atipera.atiperaintershiptask.config;
 import atipera.atiperaintershiptask.dto.response.feign_client.GithubBranchResponse;
 import atipera.atiperaintershiptask.dto.response.feign_client.GithubRepositoryResponse;
 import atipera.atiperaintershiptask.exception.RateLimitException;
+import atipera.atiperaintershiptask.exception.UnauthorizedException;
 import atipera.atiperaintershiptask.feign_client.GithubClient;
-import atipera.atiperaintershiptask.service.GithubService;
 import feign.FeignException;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,13 +25,25 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-@Data
 public class GithubFallbackFactory implements FallbackFactory<GithubClient> {
 
-        public static volatile Instant unblockedAt = Instant.now();
+        private static volatile Instant unblockedAt = Instant.now();
+        private static volatile boolean apiIsBlocked = false;
 
-        public static void setUnblockedAt(Instant unblockedAt) {
+        public static synchronized Instant getUnblockedAt() {
+                return unblockedAt;
+        }
+
+        public static synchronized void setUnblockedAt(Instant unblockedAt) {
                 GithubFallbackFactory.unblockedAt = unblockedAt;
+        }
+
+        public static synchronized boolean isApiBlocked() {
+                return apiIsBlocked;
+        }
+
+        public static synchronized void setApiBlocked(boolean apiIsBlocked) {
+                GithubFallbackFactory.apiIsBlocked = apiIsBlocked;
         }
 
         @Override
@@ -53,37 +64,38 @@ public class GithubFallbackFactory implements FallbackFactory<GithubClient> {
                 };
         }
 
-        private void handleException(Throwable cause) {
+        private synchronized void handleException(Throwable cause) {
                 if (cause instanceof FeignException.Forbidden) {
                         FeignException.Forbidden exception = (FeignException.Forbidden) cause;
 
                         if (exception.responseHeaders().containsKey("Retry-After")) {
-                                String retryAfter = exception.responseHeaders().get("Retry-After").toString();
+                                String retryAfter = exception.responseHeaders().get("Retry-After").stream().findFirst().get();
                                 int retryAfterSeconds = Integer.parseInt(retryAfter);
-                                unblockedAt = Instant.now().plusSeconds(retryAfterSeconds);
-                                log.warn("API rate limit exceeded. Blocking until {}", unblockedAt);
+                                setUnblockedAt(Instant.now().plusSeconds(retryAfterSeconds));
                         } else if (exception.responseHeaders().containsKey("X-RateLimit-Remaining")) {
                                 String rateLimitReset = exception.responseHeaders().get("X-RateLimit-Reset").stream().findFirst().get();
                                 long resetTime = Long.parseLong(rateLimitReset);
-                                unblockedAt = Instant.ofEpochSecond(resetTime);
-                                log.warn("API rate limit exceeded. Blocking until {}", unblockedAt);
+                                setUnblockedAt(Instant.ofEpochSecond(resetTime));
                         } else {
-                                // Default block for 1 minute
-                                unblockedAt = Instant.now().plusSeconds(60);
-                                log.warn("API rate limit exceeded. Blocking for 1 minute until {}", unblockedAt);
+                                setUnblockedAt(Instant.now().plusSeconds(60));
                         }
-                        GithubService.apiIsBlocked = true;
-                        throw new RateLimitException("API rate limit exceeded. Blocking until " + GithubFallbackFactory.unblockedAt);
+
+                        log.warn("API rate limit exceeded. Blocking until {}", getUnblockedAt());
+                        setApiBlocked(true);
+                        throw new RateLimitException("API rate limit exceeded. Blocking until " + getUnblockedAt());
+
+                } else if (cause instanceof FeignException.Unauthorized) {
+                        throw new UnauthorizedException("Unauthorized. Please check token expiration");
                 }
         }
 
         // Scheduled method to clear the block
         @Scheduled(fixedRate = 10000)
-        public void clearBlock() {
-                if (Instant.now().isAfter(unblockedAt)) {
+        public static synchronized void clearBlock() {
+                if (Instant.now().isAfter(getUnblockedAt())) {
                         log.info("API block cleared");
-                        unblockedAt = Instant.now();
-                        GithubService.apiIsBlocked = false;
+                        setUnblockedAt(Instant.now());
+                        setApiBlocked(false);
                 }
         }
 }

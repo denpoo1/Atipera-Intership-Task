@@ -41,6 +41,11 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(getDefaultErrorResponse(error, 403), HttpStatus.NOT_FOUND);
         }
 
+        @ExceptionHandler(UnauthorizedException.class)
+        public ResponseEntity<Object> handleNotFoundError(UnauthorizedException error) {
+                return new ResponseEntity<>(getDefaultErrorResponse(error, 401), HttpStatus.NOT_FOUND);
+        }
+
         @ExceptionHandler(NotFoundException.class)
         public ResponseEntity<Object> handleNotFoundException(NotFoundException error) {
                 return new ResponseEntity<>(getDefaultErrorResponse(error, 404), HttpStatus.NOT_FOUND);
