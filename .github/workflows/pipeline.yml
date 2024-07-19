@@ -101,6 +101,11 @@ jobs:
       name: 'production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     steps:
+      - name: Set up environment variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL}}"
+          echo "AUTHORIZATION_TOKEN=${{ secrets.AUTHORIZATION_TOKEN }}"
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
