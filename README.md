@@ -12,6 +12,11 @@
 This application provides an API to list GitHub repositories of a given user, including details about each repository's branches and their latest commits. The application is built using Java 21 and Spring Boot 3, but you can also use Kotlin + Spring Boot 3 or Quarkus 3 based on your preference.
 
 ## Main handler logic
+This logic is made due to best practices according to the github api documentation. I am attaching a list of documentation that I used to make this logic:
+- https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28
+- https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api?apiVersion=2022-11-28
+- https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api?apiVersion=2022-11-28
+
 [![dnBjCyG.md.png](https://iili.io/dnBjCyG.md.png)](https://freeimage.host/i/dnBjCyG)
 
 ## Pipeline logic
