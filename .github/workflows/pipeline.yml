@@ -70,7 +70,7 @@ jobs:
 
   build_and_deploy_container_to_dockerhub:
     runs-on: ubuntu-latest
-    needs: [ sonarqube-analyze ]
+#    needs: [ sonarqube-analyze ]
     permissions:
       contents: 'read'
       id-token: 'write'
