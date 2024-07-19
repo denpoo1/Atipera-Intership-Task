@@ -89,8 +89,27 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build Docker image and Push
-        run: mvn compile jib:build \
-          -Djib.to.image=denpool/intership-service:${{ github.sha }} \
-          -Djib.to.auth.username=${{ secrets.DOCKER_USERNAME }} \
-          -Djib.to.auth.password=${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          mvn compile jib:build \
+            -Djib.to.image=denpool/intership-service:${{ github.sha }} \
+            -Djib.to.auth.username=${{ secrets.DOCKER_USERNAME }} \
+            -Djib.to.auth.password=${{ secrets.DOCKER_PASSWORD }}
+
+  deploy_container_to_azure_web_app:
+    runs-on: ubuntu-latest
+    needs: [ build_and_deploy_container_to_dockerhub ]
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    steps:
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'intership-task'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_8f57b1303c3540059e79b099630db26b }}
+          images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_22b021e59eef425799ee76fd731c3fdd }}/intership-service:${{ github.sha }}'
+
+
 
