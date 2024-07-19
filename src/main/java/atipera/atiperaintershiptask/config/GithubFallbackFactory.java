@@ -64,6 +64,13 @@ public class GithubFallbackFactory implements FallbackFactory<GithubClient> {
                 };
         }
 
+        /**
+         * This logic is made due to best practices according to the github api documentation. I am attaching a list of documentation that I used to make this logic:
+         *     https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28
+         *     https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api?apiVersion=2022-11-28
+         *     https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api?apiVersion=2022-11-28
+         */
+        
         private synchronized void handleException(Throwable cause) {
                 if (cause instanceof FeignException.Forbidden) {
                         FeignException.Forbidden exception = (FeignException.Forbidden) cause;
