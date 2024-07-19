@@ -107,8 +107,8 @@ jobs:
         with:
           app-name: 'intership-task'
           slot-name: 'production'
-          publish-profile: ${{ secrets.AzureAppService_PublishProfile_8f57b1303c3540059e79b099630db26b }}
-          images: 'index.docker.io/${{ secrets.AzureAppService_ContainerUsername_22b021e59eef425799ee76fd731c3fdd }}/intership-service:${{ github.sha }}'
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          images: 'index.docker.io/denpool/intership-service:${{ github.sha }}'
 
 
 
