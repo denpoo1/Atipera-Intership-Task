@@ -129,7 +129,7 @@ jobs:
           inlineScript: |
             az container create \
               --resource-group intership-task \
-              --name test-app \
+              --name intership-service \
               --image intership.azurecr.io/intership-service:ec244710b4d50979b723bc3ce95e370f5b290e39 \
               --ports ${{ vars.SERVER_PORT }} \
               --environment-variables \

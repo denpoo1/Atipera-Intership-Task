@@ -1,75 +1,153 @@
-Dzień dobry
-Z tej strony Adam z Atipera, jestem właścicielem softwarehouse i osobą, z którą Pan/Pani potencjalnie będzie pracować w projekcie. Jeżeli są jakieś pytania, proszę pisać w odpowiedz na maila, chętnie odpowiem. Aby zachować uczciwość rekrutacji, nie odpisujemy na pytania odnośnie treści zadania.
+![Logo](https://user-images.githubusercontent.com/74038190/212741999-016fddbd-617a-4448-8042-0ecf907aea25.gif)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=denpoo1_Atipera-Intership-Task&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=denpoo1_Atipera-Intership-Task)
 
-Wysyłam zdania rekrutacyjne. Proszę je zrobić w Java 21/Kotlin + Spring Boot 3/Quarkus 3, w tym w czym wygodniej.
+# Atipera Intership TASK
 
-Zadanie nie ma określonego czasu wykonania. Prowadzimy rekrutację do momentu aż zapełnimy wszystkie wolne miejsca. Pierwsze spotkania będę umawiał 05.08.2024 na podstawie otrzymanych do tego czasu zadań. Wymogiem jest możliwość rozpoczęcia pracy najpóźniej 01.10.2024.
+## SWAGGER URI: [http://172.205.85.35:8080/swagger-ui/index.html](http://172.205.85.35:8080/swagger-ui/index.html)
 
-W przypadku wysłania zadania i nie przejścia do kolejnego etapu oferuję 10 minutą rozmową telefoniczna wyjaśniającą czego zabrakło (dla numerów zagranicznych zadzwownie na WhatsApp).
+# GitHub Repository Listing API
 
-Rozwiązanie zadania wysyłamy jako link do publicznego repo na github.
+## Overview
 
-Powodzenia
-Adam Popławski
+This application provides an API to list GitHub repositories of a given user, including details about each repository's branches and their latest commits. The application is built using Java 21 and Spring Boot 3, but you can also use Kotlin + Spring Boot 3 or Quarkus 3 based on your preference.
 
-Acceptance criteria:
-As an api consumer, given username and header “Accept: application/json”, I would like to list all his github repositories, which are not forks. Information, which I require in the response, is:
+## Main handler logic
+[![dnBjCyG.md.png](https://iili.io/dnBjCyG.md.png)](https://freeimage.host/i/dnBjCyG)
 
-Repository Name
-Owner Login
-For each branch it’s name and last commit sha
+## Pipeline logic
+[![dnBSm8B.md.png](https://iili.io/dnBSm8B.md.png)](https://freeimage.host/i/dnBSm8B)
 
-As an api consumer, given not existing github user, I would like to receive 404 response in such a format:
+## Requirements
+
+- Java 21 / Kotlin + Spring Boot 3 / Quarkus 3
+- A working knowledge of GitHub's REST API
+- Basic understanding of RESTful services and JSON responses
+
+## API Endpoints
+
+### List User Repositories
+
+**Endpoint:** `GET /repositories`
+
+**Description:** Lists all repositories of a given GitHub user that are not forks.
+
+**Query Parameters:**
+- `username`: The GitHub username for which repositories are to be listed.
+
+**Request Headers:**
+- `Accept: application/json`
+
+**Response:**
+- Status code `200 OK` if the user exists and has repositories.
+- Status code `404 Not Found` if the user does not exist.
+
+**Response Body Example:**
+```json
 {
-    “status”: ${responseCode}
-    “message”: ${whyHasItHappened}
+  "repositories": [
+    {
+      "repository_name": "repo1",
+      "owner_login": "owner1",
+      "branches": [
+        {
+          "branch_name": "main",
+          "last_commit_sha": "abc123"
+        },
+        {
+          "branch_name": "dev",
+          "last_commit_sha": "def456"
+        }
+      ]
+    },
+    {
+      "repository_name": "repo2",
+      "owner_login": "owner1",
+      "branches": [
+        {
+          "branch_name": "main",
+          "last_commit_sha": "ghi789"
+        }
+      ]
+    }
+  ]
 }
+```
 
-Notes:
-Please full-fill the given acceptance criteria, delivering us your best code compliant with industry standards.
-Please use developer.github.com/v3 as a backing API
-Application should have a proper README.md file
+# Error Handling
 
------------------------------------------------------------------------
-что я должен сделать:
-1) расписать входы и выходы 
-2) настроить openfeign 
-3) обработать все виды ощибок github 
-4) настроить так что если запрос не удался то обратится по ссылке другой (cirkuit breaker)
-5) покрыть код тестами не менее 80 процентов
-6) подключить checkstyle и sonarqube 
-7) swagger документация
-8) написать github actions пайплайн
-8) задеплоить этот сервис
-9) заполнить красиво readme 
-10) скниуть по мэил мое решение
-11) добавить пагинацию (сколько за раз репозиториев в ответе)
-12) логирование
-13) oauth2 регистрация
+The application uses global exception handling to provide meaningful error responses. Here is a summary of how errors are handled:
 
 
-request: 
-endpoint uri: api/github/{username}/repos
+### Too Many Requests (HTTP 429)
+Description: This error occurs when the rate limit for API requests is exceeded.
+#### Response Example:
+```json
+    {
+      "status": 429,
+      "message": "Too Many Requests"
+    }
+```
 
-response when found repos by username:
+
+### Not Found (HTTP 404)
+Description: This error occurs when the requested resource (e.g., a GitHub repository or user) is not found.
+#### Response Example:
+```json
+    {
+      "status": 404,
+      "message": "Not Found"
+    }
+```
+
+### Internal Server Error (HTTP 500)
+Description: This error occurs when there is an internal server error while processing the request.
+#### Response Example:
+```json
+    {
+      "status": 500,
+      "message": "Internal Server Error"
+    }
+```
+
+### Generic Feign Exception
+Description: This handles any other Feign exceptions that may occur.
+#### Response Example:
+
+```json
+        {
+          "status": 500,
+          "message": "An error occurred"
+        }
+```
+Custom Exceptions
+
+### Rate Limit Exception (HTTP 403)
+Description: This error occurs when the user exceeds the rate limit for a specific resource.
+#### Response Example:
+```json
+    {
+      "status": 403,
+      "message": "Rate limit exceeded"
+    }
+```
+
+### Unauthorized Exception (HTTP 401)
+Description: This error occurs when authentication credentials are invalid or missing.
+#### Response Example:
+```json
+    {
+      "status": 401,
+      "message": "Unauthorized"
+    }
+```
+
+### Not Found Exception (HTTP 404)
+Description: This error occurs when the requested resource or user is not found.
+#### Response Example:
+```json
 {
-"repository_name": "test",
-"owner_login": "owner_login",
-"branches": [
-{
-"branch_name": "branch1",
-"last_commit_sha" : "last commit sha"
-},
-{
-"branch_name": "branch2",
-"last_commit_sha" : "last commit sha"
+  "status": 404,
+  "message": "User not found"
 }
-]
-}
+```
 
-response when not found repos by username:
-receive 404 response in such a format:
-{
-    “status”: ${responseCode}
-    “message”: ${whyHasItHappened}
-}
